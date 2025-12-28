@@ -1,0 +1,22 @@
+# Environment files (never include secrets in images)
+.env
+.env.local
+*.env
+
+# Git related (usually not present in service folder, but safe to ignore)
+.git
+.gitignore
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
