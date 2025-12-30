@@ -1,16 +1,29 @@
+from typing import Optional
 from fastapi import FastAPI, HTTPException
-from typing import List
+from typing import List, Optional
 from app.schemas import ProductCreate, ProductUpdate, ProductResponse
 
 app = FastAPI(title="Product Service")
 
 # Fake in-memory database
 products_db = []
+categories_db = ["phones", "chargers", "headphones"]
 
 
 @app.get("/api/v1/products", response_model=List[ProductResponse])
 def list_products():
     return products_db
+
+
+@app.get("/api/v1/products/search", response_model=List[ProductResponse])
+def search_products(query: Optional[str] = None):
+    if not query:
+        return products_db
+
+    return [
+        product for product in products_db
+        if query.lower() in product["title"].lower()
+    ]
 
 
 @app.get("/api/v1/products/{product_id}", response_model=ProductResponse)
@@ -47,3 +60,8 @@ def delete_product(product_id: int):
             products_db.pop(index)
             return {"message": "Product deleted"}
     raise HTTPException(status_code=404, detail="Product not found")
+
+
+@app.get("/api/v1/categories")
+def list_categories():
+    return categories_db
