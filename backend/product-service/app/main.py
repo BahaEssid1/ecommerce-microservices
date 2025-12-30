@@ -65,3 +65,8 @@ def delete_product(product_id: int):
 @app.get("/api/v1/categories")
 def list_categories():
     return categories_db
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "service": "product-service"}
