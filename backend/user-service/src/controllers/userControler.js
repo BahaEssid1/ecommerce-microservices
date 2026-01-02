@@ -1,34 +1,45 @@
 const User = require("../models/userModel");
 
-// GET /api/v1/users — List all users (Admin only)
+// GET /api/v1/users — Admin only
 const listUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password"); // exclude password
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const users = await User.find().select("-password");
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// PUT /api/v1/users/:id — Update a user profile
+// PUT /api/v1/users/:id — Update profile
 const updateUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { username, email, role } = req.body;
+    // Only owner or admin
+    if (req.user.id !== req.params.id && req.user.role !== "admin") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
 
-    // Find the user
-    const user = await User.findById(id);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    // Prevent role escalation
+    if (req.body.role && req.user.role !== "admin") {
+      return res.status(403).json({ error: "Cannot change role" });
+    }
 
-    // Update fields
-    if (username) user.username = username;
-    if (email) user.email = email;
-    if (role) user.role = role;
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    ).select("-password");
 
-    await user.save();
-    res.json({ message: "User updated", user });
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(updatedUser);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(400).json({ error: err.message });
   }
 };
 
