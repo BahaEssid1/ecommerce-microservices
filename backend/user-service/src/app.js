@@ -17,6 +17,13 @@ mongoose.connect(process.env.MONGO_URI)
 app.use("/api/v1/auth", require("./routes/auth"));
 app.use("/api/v1/users", require("./routes/users"));
 
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: err.message });
+});
+
+
 // Start server
 const PORT = process.env.PORT || 8002;
 app.listen(PORT, () => console.log(`User Service running on port ${PORT}`));
